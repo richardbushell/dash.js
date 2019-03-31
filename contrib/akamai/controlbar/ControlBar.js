@@ -156,16 +156,13 @@ var ControlBar = function (dashjsMediaPlayer, displayUTCTimeCodes) {
         },
 
         getBufferLevel = function () {
-            var videoMetrics = player.getMetricsFor('video');
-            var audioMetrics = player.getMetricsFor('audio');
             var dashMetrics = player.getDashMetrics();
             var bufferLevel = 0;
 
             if (dashMetrics) {
-                if (videoMetrics) {
-                    bufferLevel = dashMetrics.getCurrentBufferLevel(videoMetrics);
-                } else if (audioMetrics) {
-                    bufferLevel = dashMetrics.getCurrentBufferLevel(audioMetrics);
+                bufferLevel = dashMetrics.getCurrentBufferLevel('video', true);
+                if (!bufferLevel) {
+                    bufferLevel = dashMetrics.getCurrentBufferLevel('audio', true);
                 }
             }
             return bufferLevel;
@@ -557,7 +554,6 @@ var ControlBar = function (dashjsMediaPlayer, displayUTCTimeCodes) {
 
         getMenuInitialIndex = function(info, menuType, mediaType) {
             if (menuType === 'track') {
-
                 var mediaInfo = player.getCurrentTrackFor(mediaType);
                 var idx = 0
                 info.some(function(element, index){
@@ -569,11 +565,13 @@ var ControlBar = function (dashjsMediaPlayer, displayUTCTimeCodes) {
                 return idx;
 
             } else if (menuType === "bitrate") {
-                return player.getAutoSwitchQualityFor(mediaType) ? 0 : player.getQualityFor(mediaType);
+                var cfg = player.getSettings();
+                if (cfg.streaming && cfg.streaming.abr && cfg.streaming.abr.initialBitrate) {
+                    return cfg.streaming.abr.initialBitrate['mediaType'] | 0;
+                }
+                return 0;
             } else if (menuType === "caption") {
-                var idx = player.getCurrentTextTrackIndex() + 1;
-
-                return idx;
+                return player.getCurrentTextTrackIndex() + 1;
             }
         },
 
@@ -700,13 +698,22 @@ var ControlBar = function (dashjsMediaPlayer, displayUTCTimeCodes) {
                 switch (self.name) {
                     case 'video-bitrate-list':
                     case 'audio-bitrate-list':
-                        if (self.index > 0) {
-                            if (player.getAutoSwitchQualityFor(self.mediaType)) {
-                                player.setAutoSwitchQualityFor(self.mediaType, false);
+                        var cfg = {
+                            'streaming': {
+                                'abr': {
+                                    'autoSwitchBitrate': {
+                                    }
+                                }
                             }
+                        };
+
+                        if (self.index > 0) {
+                            cfg.streaming.abr.autoSwitchBitrate[self.mediaType] = false;
+                            player.updateSettings(cfg);
                             player.setQualityFor(self.mediaType, self.index - 1);
                         } else {
-                            player.setAutoSwitchQualityFor(self.mediaType, true);
+                            cfg.streaming.abr.autoSwitchBitrate[self.mediaType] = true;
+                            player.updateSettings(cfg);
                         }
                         break;
                     case 'caption-list' :

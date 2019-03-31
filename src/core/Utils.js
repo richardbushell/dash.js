@@ -28,46 +28,45 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  */
-
-var CustomThroughputRule;
-
-function CustomThroughputRuleClass() {
-
-    let factory = dashjs.FactoryMaker;
-    let SwitchRequest = factory.getClassFactoryByName('SwitchRequest');
-    let MetricsModel = factory.getSingletonFactoryByName('MetricsModel');
-
-    let Debug = factory.getSingletonFactoryByName('Debug');
-
-    let context = this.context;
-    let instance,
-        logger;
-
-    function setup() {
-        logger = Debug(context).getInstance().getLogger(instance);
+class Utils {
+    static mixin(dest, source, copy) {
+        let s;
+        let empty = {};
+        if (dest) {
+            for (let name in source) {
+                if (source.hasOwnProperty(name)) {
+                    s = source[name];
+                    if (!(name in dest) || (dest[name] !== s && (!(name in empty) || empty[name] !== s))) {
+                        if (typeof dest[name] === 'object' && dest[name] !== null) {
+                            dest[name] = Utils.mixin(dest[name], s, copy);
+                        } else {
+                            dest[name] = copy(s);
+                        }
+                    }
+                }
+            }
+        }
+        return dest;
     }
 
-    function getMaxIndex(rulesContext) {
-        // here you can get some informations aboit metrics for example, to implement the rule
-        let metricsModel = MetricsModel(context).getInstance();
-        var mediaType = rulesContext.getMediaInfo().type;
-        var metrics = metricsModel.getMetricsFor(mediaType, true);
-
-        // this sample only display metrics in console
-        console.log(metrics);
-
-        return SwitchRequest(context).create();
+    static clone(src) {
+        if (!src || typeof src !== 'object') {
+            return src; // anything
+        }
+        let r;
+        if (src instanceof Array) {
+            // array
+            r = [];
+            for (let i = 0, l = src.length; i < l; ++i) {
+                if (i in src) {
+                    r.push(Utils.clone(src[i]));
+                }
+            }
+        } else {
+            r = {};
+        }
+        return Utils.mixin(r, src, Utils.clone);
     }
-
-    instance = {
-        getMaxIndex: getMaxIndex
-    };
-
-    setup();
-
-    return instance;
 }
 
-CustomThroughputRuleClass.__dashjs_factory_name = 'CustomThroughputRule';
-CustomThroughputRule = dashjs.FactoryMaker.getClassFactory(CustomThroughputRuleClass);
-
+export default Utils;

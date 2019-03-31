@@ -287,7 +287,7 @@ function DashManifestModel() {
     }
 
     function getLabelsForAdaptation(adaptation) {
-        if (!adaptation.Label_asArray || !adaptation.Label_asArray.length) {
+        if (!adaptation || !adaptation.Label_asArray || !Array.isArray(adaptation.Label_asArray)) {
             return [];
         }
 
@@ -334,6 +334,8 @@ function DashManifestModel() {
         //If the attribute is not present, the duration of the Media Presentation is unknown.
         if (manifest && manifest.hasOwnProperty(DashConstants.MEDIA_PRESENTATION_DURATION)) {
             mpdDuration = manifest.mediaPresentationDuration;
+        } else if (manifest && manifest.type == 'dynamic') {
+            mpdDuration = Number.POSITIVE_INFINITY;
         } else {
             mpdDuration = Number.MAX_SAFE_INTEGER || Number.MAX_VALUE;
         }
@@ -713,7 +715,9 @@ function DashManifestModel() {
             if (manifest.hasOwnProperty(DashConstants.AVAILABILITY_START_TIME)) {
                 mpd.availabilityStartTime = new Date(manifest.availabilityStartTime.getTime());
             } else {
-                mpd.availabilityStartTime = new Date(manifest.loadedTime.getTime());
+                if (manifest.loadedTime) {
+                    mpd.availabilityStartTime = new Date(manifest.loadedTime.getTime());
+                }
             }
 
             if (manifest.hasOwnProperty(DashConstants.AVAILABILITY_END_TIME)) {

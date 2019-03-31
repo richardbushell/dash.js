@@ -53,12 +53,13 @@ function Stream(config) {
     const capabilities = config.capabilities;
     const errHandler = config.errHandler;
     const timelineConverter = config.timelineConverter;
-    const metricsModel = config.metricsModel;
+    const dashMetrics = config.dashMetrics;
     const abrController = config.abrController;
     const playbackController = config.playbackController;
     const mediaController = config.mediaController;
     const textController = config.textController;
     const videoModel = config.videoModel;
+    const settings = config.settings;
 
     let instance,
         logger,
@@ -92,8 +93,9 @@ function Stream(config) {
 
         fragmentController = FragmentController(context).create({
             mediaPlayerModel: mediaPlayerModel,
-            metricsModel: metricsModel,
-            errHandler: errHandler
+            dashMetrics: dashMetrics,
+            errHandler: errHandler,
+            settings: settings
         });
 
         registerEvents();
@@ -374,7 +376,6 @@ function Stream(config) {
             adapter: adapter,
             manifestModel: manifestModel,
             mediaPlayerModel: mediaPlayerModel,
-            metricsModel: metricsModel,
             dashMetrics: config.dashMetrics,
             baseURLController: config.baseURLController,
             stream: instance,
@@ -383,7 +384,8 @@ function Stream(config) {
             mediaController: mediaController,
             streamController: config.streamController,
             textController: textController,
-            errHandler: errHandler
+            errHandler: errHandler,
+            settings: settings
         });
 
         streamProcessor.initialize(mediaSource);
