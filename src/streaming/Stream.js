@@ -219,6 +219,8 @@ function Stream(config) {
 
     function reset() {
 
+        stopEventController();
+
         if (playbackController) {
             playbackController.pause();
         }
@@ -338,16 +340,16 @@ function Stream(config) {
 
     function onCurrentTrackChanged(e) {
         if (e.newMediaInfo.streamInfo.id !== streamInfo.id) return;
+        let mediaInfo = e.newMediaInfo;
+        let manifest = manifestModel.getValue();
+
+        adapter.setCurrentMediaInfo(streamInfo.id, mediaInfo.type, mediaInfo);
 
         let processor = getProcessorForMediaInfo(e.newMediaInfo);
         if (!processor) return;
 
         let currentTime = playbackController.getTime();
         logger.info('Stream -  Process track changed at current time ' + currentTime);
-        let mediaInfo = e.newMediaInfo;
-        let manifest = manifestModel.getValue();
-
-        adapter.setCurrentMediaInfo(streamInfo.id, mediaInfo.type, mediaInfo);
 
         logger.debug('Stream -  Update stream controller');
         if (manifest.refreshManifestOnSwitchTrack) {
