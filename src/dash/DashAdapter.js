@@ -181,7 +181,7 @@ function DashAdapter() {
         }
         const adaptationsForType = dashManifestModel.getAdaptationsForType(manifest, streamInfo.index, type !== constants.EMBEDDED_TEXT ? type : constants.VIDEO);
 
-        if (!adaptationsForType) return mediaArr;
+        if (!adaptationsForType || adaptationsForType.length === 0) return mediaArr;
 
         voAdaptations[periodId] = voAdaptations[periodId] || dashManifestModel.getAdaptationsForPeriod(selectedVoPeriod);
 
@@ -473,6 +473,7 @@ function DashAdapter() {
             if (streamInfo.id === voPeriod.id) return voPeriod;
         }
 
+        //return voPeriodsArray[voPeriodsArray.length - 1];
         return null;
     }
 
